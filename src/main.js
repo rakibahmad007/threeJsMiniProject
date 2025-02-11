@@ -140,7 +140,7 @@ groundMesh.receiveShadow = true;
 scene.add(groundMesh)
 
 // Fixed spotlight at the center
-const spotLight = new THREE.SpotLight(0xffffff, 3000, 1000, 0.3, 1);
+const spotLight = new THREE.SpotLight(0xffffff, 5000, 2000, 0.4, 1);
 spotLight.position.set(0, 25, 0);
 spotLight.castShadow = true;
 spotLight.shadow.bias = -0.0001;
@@ -173,7 +173,7 @@ loader.load('scene.gltf', (gltf) => {
     });
 
     // Set initial car position on the circle
-    car.position.set(pathRadius, 0.8, 0); // Start at (radius, height, 0)
+    car.position.set(pathRadius, 0, 0); // Start at (radius, height, 0)
     scene.add(car);
 });
 
@@ -183,27 +183,22 @@ function animate() {
 
     if (car) {
         // Update angle for circular movement
-        angle += speed;
+        angle -= speed; // Subtracting makes the car move clockwise (like a race track)
 
-        // Calculate new position on the circle
+        // Calculate new position on the circular path
         const x = Math.cos(angle) * pathRadius;
         const z = Math.sin(angle) * pathRadius;
 
         // Update car position
-        car.position.x = x;
-        car.position.z = z;
-        car.position.y = 1.6; // Keep constant height
+        car.position.set(x, 1.6, z);
 
-        // Calculate the direction vector for the tangent (direction of movement)
-        const tangentX = -Math.sin(angle); // Perpendicular to radius
-        const tangentZ = Math.cos(angle); // Perpendicular to radius
+        // Compute future position slightly ahead for orientation
+        const futureAngle = angle - 0.1; // A small offset to predict movement
+        const futureX = Math.cos(futureAngle) * pathRadius;
+        const futureZ = Math.sin(futureAngle) * pathRadius;
 
-        // Make the car face the tangent (direction of motion)
-        car.rotation.y = Math.atan2(tangentZ, tangentX);
-
-        // Optional: Add slight banking on turns
-        // const bankAngle = Math.PI / 32; // Slight tilt
-        // car.rotation.z = -bankAngle; // Bank slightly into the turn
+        // Make the car face the direction of movement
+        car.lookAt(futureX, 1.6, futureZ);
     }
 
     controls.update();
@@ -211,7 +206,6 @@ function animate() {
 }
 
 animate();
-
 // Handle window resizing
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
