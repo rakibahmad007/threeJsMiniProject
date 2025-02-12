@@ -85,7 +85,7 @@ function animate() {
     car.position.y = 0.05;
     
     // Reset position when car reaches the end
-    if (zPos > 170) {
+    if (zPos > 150) {
       zPos = -20;
     }
   }
