@@ -21,6 +21,11 @@
             margin: 0;
             overflow: hidden;
         }
+        .colorPicker {
+          display: inline-block;
+          margin: 0 10px;
+          color: whitesmoke;
+        }
         
     </style>
 	</head>
@@ -28,6 +33,14 @@
     <div id="heading">
       <h1>PORSCHE 911 930 TURBO 1975 </h1>
       <div class="border"></div>
+      <br><br>
+			<span class="colorPicker"><input id="body-color" type="color" value="#ff0000"></input><br/>Body</span>
+      <span class="colorPicker"><input id="details-color" type="color" value="#ffffff"></input><br/>Details</span>
+			<span class="colorPicker"><input id="glass-color" type="color" value="#ffffff"></input><br/>Glass</span>
+      <span class="colorPicker">
+        <input id="speed-control" type="range" min="0" max="0.1" step="0.005" value="0.02">
+        <br/>Speed
+      </span>
     </div>
    
 		<script type="module" src="/src/main.js"></script>

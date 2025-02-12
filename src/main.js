@@ -95,27 +95,22 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 
-const renderer = new THREE.WebGLRenderer({antialias: true})
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.setSize(window.innerWidth,window.innerHeight);
-renderer.setClearColor(0x000000)
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-document.body.appendChild(renderer.domElement)
+document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(
-    45,
-    window.innerWidth / window.innerHeight,
-    1,
-    1000
-)
-camera.position.set(4,5,11);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+camera.position.set(4, 5, 11);
 
-const controls = new OrbitControls(camera,renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.enablePan = false;
 controls.minDistance = 5;
@@ -126,78 +121,79 @@ controls.autoRotate = false;
 controls.target = new THREE.Vector3(0, 1, 0);
 controls.update();
 
-const groundGeometry = new THREE.PlaneGeometry(20,20,32,32)
-groundGeometry.rotateX(-Math.PI/2)
+const groundGeometry = new THREE.PlaneGeometry(20, 20, 32, 32);
+groundGeometry.rotateX(-Math.PI / 2);
 
 const groundMaterial = new THREE.MeshStandardMaterial({
     color: 0x555555,
     side: THREE.DoubleSide
-})
+});
 
-const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial)
+const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
 groundMesh.castShadow = false;
 groundMesh.receiveShadow = true;
-scene.add(groundMesh)
+scene.add(groundMesh);
 
-// Fixed spotlight at the center
+// Spotlight
 const spotLight = new THREE.SpotLight(0xffffff, 5000, 2000, 0.4, 1);
 spotLight.position.set(0, 25, 0);
 spotLight.castShadow = true;
 spotLight.shadow.bias = -0.0001;
 scene.add(spotLight);
 
-// Set spotlight target to the center of the scene
+// Set spotlight target
 const spotLightTarget = new THREE.Object3D();
 spotLightTarget.position.set(0, 0, 0);
 scene.add(spotLightTarget);
 spotLight.target = spotLightTarget;
 
-// Calculate the radius of the spotlight circle on the ground
+// Calculate the radius for circular movement
 const spotlightHeight = 25;
 const spotlightAngle = 0.22;
 const pathRadius = Math.tan(spotlightAngle) * spotlightHeight;
 
 let car;
 let angle = 0;
-const speed = 0.02; // Adjust for desired speed
+let speed = 0.02; // Default speed
 
-const loader = new GLTFLoader().setPath('public/porsche_911_930_turbo_1975/')
+const speedControl = document.getElementById("speed-control");
+speedControl.addEventListener("input", (event) => {
+    speed = parseFloat(event.target.value); // Update speed dynamically
+});
+
+// Load the Porsche model
+const loader = new GLTFLoader().setPath('public/porsche_911_930_turbo_1975/');
 loader.load('scene.gltf', (gltf) => {
     car = gltf.scene;
     
     car.traverse((child) => {
         if (child.isMesh) {
+            console.log("Mesh Name:", child.name, "| Material Name:", child.material?.name);
             child.castShadow = true;
             child.receiveShadow = true;
         }
     });
 
-    // Set initial car position on the circle
-    car.position.set(pathRadius, 0, 0); // Start at (radius, height, 0)
+    car.position.set(pathRadius, 0, 0);
     scene.add(car);
 });
 
-
+// Animation loop
 function animate() {
     requestAnimationFrame(animate);
 
     if (car) {
-        // Update angle for circular movement
-        angle -= speed; // Subtracting makes the car move clockwise (like a race track)
+        angle -= speed; // Update position based on speed slider
 
-        // Calculate new position on the circular path
         const x = Math.cos(angle) * pathRadius;
         const z = Math.sin(angle) * pathRadius;
 
-        // Update car position
         car.position.set(x, 1.6, z);
 
-        // Compute future position slightly ahead for orientation
-        const futureAngle = angle - 0.1; // A small offset to predict movement
+        // Compute future position for rotation
+        const futureAngle = angle - 0.1;
         const futureX = Math.cos(futureAngle) * pathRadius;
         const futureZ = Math.sin(futureAngle) * pathRadius;
-
-        // Make the car face the direction of movement
         car.lookAt(futureX, 1.6, futureZ);
     }
 
@@ -206,6 +202,7 @@ function animate() {
 }
 
 animate();
+
 // Handle window resizing
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
